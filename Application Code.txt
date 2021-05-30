@@ -1,0 +1,251 @@
+using System;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+using System.IO.Ports;
+
+namespace Arduino_Datalogger
+{
+    
+    public partial class Form1 : Form
+
+    {
+        public Form1()
+        {
+            InitializeComponent();
+            //method in Visual Studio.NET C# or VB.NET is method that is automatically
+            //created and managed by Windows Forms designer and it defines everything you see on the form.
+            //Everything done on the form in VS.NET using designers generates code.
+        }
+
+        #region Form1_Load
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            string[] ports = SerialPort.GetPortNames(); // Get port names and save as string in ports
+            ComPort_comboBox.Items.AddRange(ports); // Add in comboBox1 the var ports
+            Count_loop_label.Text = "0"; // Change the text of Label5 to 0
+            Number_of_loops_textBox.Text = "10"; // Change the text fo texBox4 to 1
+        }
+
+        private void Number_of_loops_textBox_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (!Char.IsDigit(e.KeyChar) && e.KeyChar != (char)8)
+            {
+                e.Handled = true;
+            }
+        }
+
+        private bool stop = false;
+
+        private int b = 0;
+
+        #endregion
+
+        #region Start_Acquisition
+
+        private async void Start_Acquisition_button_Click(object sender, EventArgs e)
+        {
+            stop = true;
+            Number_of_loops_textBox.Enabled = false;
+            Disconnect_button.Enabled = false;
+            Start_Acquisition_button.Enabled = false;
+            Stop_Acquisition_button.Enabled = true;
+            
+            Var_textBox.Text = String.Empty;
+            Time_textBox.Text = String.Empty;
+            Auxiliar_textBox.Text = String.Empty;
+            Count_loop_label.Text = String.Empty;
+            
+            if (Five_seconds_checkBox.Checked)
+               {Five_seconds_checkBox.Enabled = false;
+                b = 5000;}
+            else if (One_minute_checkBox.Checked)
+               {One_minute_checkBox.Enabled = false;
+                b = 60000;}
+            else if (One_hour_checkBox.Checked)
+               {One_hour_checkBox.Enabled = false;
+                b = 3600000;}
+            else if (One_day_checkBox.Checked)
+               {One_day_checkBox.Enabled = false;
+                b = 86400000;}   
+
+            int a = Convert.ToInt32(Number_of_loops_textBox.Text); //convert text to int. The result is save in a
+            int cont = 0; // Save 0 in int count
+
+            for (cont = 1; cont <= a & stop; cont++) // Repeat loop until reach a-1
+                {
+                 var t1 = Task.Delay(b); // Create a delay with b value
+                 await t1; // Execute the delay
+
+                 Time_textBox.Text = DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss"); // Write in the textbox2 the current time
+
+                 Count_loop_label.Text = Convert.ToString(cont);
+                 serialPort1.Write("1"); // Write 1 in the selected Port
+                 string retorno = serialPort1.ReadLine(); // string retorno assume the value readed from Port1
+                 Var_textBox.Text = retorno; // Write down retorno in textbox1 and enter to the another line
+                 Auxiliar_textBox.Text += Count_loop_label.Text + " \t " + Time_textBox.Text + " \t " + retorno + "\n"; // Write down in textbox3 retorno + current time
+                }        
+        }
+
+        #endregion
+
+        #region Stop_Acquisition
+
+        private void Stop_Acquisition_button_Click(object sender, EventArgs e)
+           
+        {
+            stop = false;
+            Number_of_loops_textBox.Enabled = true;
+            Stop_Acquisition_button.Enabled = false;
+            Disconnect_button.Enabled = true;
+
+            if (Five_seconds_checkBox.Checked & Disconnect_button.Enabled)
+            {
+                Five_seconds_checkBox.Enabled = true;
+                Start_Acquisition_button.Enabled = true; }
+            else if (One_minute_checkBox.Checked & Disconnect_button.Enabled)
+            {
+                One_minute_checkBox.Enabled = true; 
+                Start_Acquisition_button.Enabled = true; }
+            else if (One_hour_checkBox.Checked & Disconnect_button.Enabled)
+            {
+                One_hour_checkBox.Enabled = true; Start_Acquisition_button.Enabled = true; }
+            else if (One_day_checkBox.Checked & Disconnect_button.Enabled)
+            {
+                One_day_checkBox.Enabled = true; Start_Acquisition_button.Enabled = true; }
+        }
+
+        #endregion
+
+        #region Time 
+
+        private void Five_seconds_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Five_seconds_checkBox.Checked & Disconnect_button.Enabled)
+            {
+                One_minute_checkBox.Enabled = false;
+                One_hour_checkBox.Enabled = false;
+                One_day_checkBox.Enabled = false;
+                Start_Acquisition_button.Enabled = true;
+            }
+            else
+            {
+                One_minute_checkBox.Enabled = true;
+                One_hour_checkBox.Enabled = true;
+                One_day_checkBox.Enabled = true;
+                Start_Acquisition_button.Enabled = false;
+            }
+        }
+
+        private void One_minute_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (One_minute_checkBox.Checked & Disconnect_button.Enabled)
+            {
+                Five_seconds_checkBox.Enabled = false;
+                One_hour_checkBox.Enabled = false;
+                One_day_checkBox.Enabled = false;
+                Start_Acquisition_button.Enabled = true;
+            }
+            else
+            {
+                Five_seconds_checkBox.Enabled = true;
+                One_hour_checkBox.Enabled = true;
+                One_day_checkBox.Enabled = true;
+                Start_Acquisition_button.Enabled = false;
+            }
+        }
+
+        private void One_hour_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (One_hour_checkBox.Checked & Disconnect_button.Enabled)
+            {
+                Five_seconds_checkBox.Enabled = false;
+                One_minute_checkBox.Enabled = false;
+                One_day_checkBox.Enabled = false;
+                Start_Acquisition_button.Enabled = true;
+            }
+            else
+            {
+                Five_seconds_checkBox.Enabled = true;
+                One_minute_checkBox.Enabled = true;
+                One_day_checkBox.Enabled = true;
+                Start_Acquisition_button.Enabled = false;
+            }
+        }
+
+        private void One_day_checkBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (One_day_checkBox.Checked & Disconnect_button.Enabled)
+            {
+                Five_seconds_checkBox.Enabled = false;
+                One_minute_checkBox.Enabled = false;
+                One_hour_checkBox.Enabled = false;
+                Start_Acquisition_button.Enabled = true;
+            }
+            else
+            {
+                Five_seconds_checkBox.Enabled = true;
+                One_minute_checkBox.Enabled = true;
+                One_hour_checkBox.Enabled = true;
+                Start_Acquisition_button.Enabled = false;
+            }
+        }
+        #endregion
+
+        #region Save
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog SaveFileDialog1 = new SaveFileDialog();
+            SaveFileDialog1.Filter = "txt files (*.txt)|*.txt";
+            SaveFileDialog1.RestoreDirectory = true;
+            if (SaveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                using (Stream s = File.Open(SaveFileDialog1.FileName, FileMode.CreateNew))
+                using (StreamWriter sw = new StreamWriter(s))
+                {
+                    sw.Write(Auxiliar_textBox.Text);
+                }
+            }
+        }
+
+        #endregion  
+
+        #region Set ComPort
+               
+        private void ComPort_comboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (!(Disconnect_button.Enabled = false))
+            {
+                Connect_button.Enabled = true;
+            }
+           
+        }
+
+        private void Connect_button_Click(object sender, EventArgs e)
+        {
+            serialPort1.PortName = ComPort_comboBox.Text; // Write in combobox1 the avaliable Ports
+            serialPort1.Open(); // Open the selected Port
+            Connect_button.Enabled = false;
+            Disconnect_button.Enabled = true;
+            ComPort_comboBox.Enabled = false;
+
+            if (Disconnect_button.Enabled & Five_seconds_checkBox.Checked | One_minute_checkBox.Checked | One_hour_checkBox.Checked| One_day_checkBox.Checked)
+            {
+                Start_Acquisition_button.Enabled = true;
+            }
+        }
+
+        private void Disconnect_button_Click(object sender, EventArgs e)
+        {
+            serialPort1.Close(); // Close the serial port
+            Disconnect_button.Enabled = false;
+            ComPort_comboBox.Enabled = true;
+            Start_Acquisition_button.Enabled = false;
+        }
+
+        #endregion
+
+    }
+}

@@ -1,0 +1,23 @@
+int sensorPin = A0;   
+int AI_0 = 0;   
+int DI_12 = 12;
+void setup() 
+  {
+    Serial.begin(9600);
+    pinMode(DI_12,INPUT_PULLUP);
+  }
+
+void loop() 
+  { 
+    int x;
+    String a = DI_12 ;
+    String b = tAI_0 ;
+    x = digitalRead (DI_12);
+    AI_0 = analogRead(sensorPin);
+    char leitura = Serial.read();
+  
+      if(leitura == '1')
+      {
+        Serial.println (a + x + b + AI_0 );
+      }
+  }
